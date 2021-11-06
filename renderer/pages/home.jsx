@@ -1,7 +1,7 @@
 import React from 'react';
 import Head from 'next/head';
-import {Button, Form, Input, Layout, Select, Slider, Switch, Tabs,} from 'antd';
-import oscService from "./oscService";
+import {Button, Col, Divider, Form, Input, Layout, Row, Select, Slider, Switch, Tabs, Card} from 'antd';
+import oscService from "../service/oscService";
 
 const {
   Content,
@@ -92,7 +92,6 @@ const Home = () => {
                   </Select>
                 </FormItem>
 
-
                 <FormItem
                     name='2x'
                     label='2X'
@@ -100,7 +99,9 @@ const Home = () => {
                     wrapperCol={{span: 8}}
                     valuePropName="checked"
                 >
-                  <Switch />
+                  <Switch onClick={() => {
+                    oscService.sendMessage({path: '/message', msg: 'toggle'})
+                  }} />
                 </FormItem>
 
                 <FormItem
@@ -117,13 +118,29 @@ const Home = () => {
                     wrapperCol={{span: 8, offset: 8}}
                 >
                   <Button size='large' type='primary' htmlType='submit'>
-                    OK
+                    Connect
                   </Button>
                   <Button size='large' style={{marginLeft: 8}} htmlType="button" onClick={onReset}>
                     Reset
                   </Button>
                 </FormItem>
               </Form>
+            </Content>
+            <Divider plain/>
+            <Content style={{padding: 10}}>
+              <Card title={'Server Status'}>
+                <Row style={{flex: 1, flexDirection: 'row', justifyContent: 'flex-start'}}>
+                  <Col span={10}>Connection Status</Col>
+                  <Col span={4}>
+                    <Switch loading
+                            defaultChecked={false}
+                            checkedChildren={'Connected'}
+                            unCheckedChildren={'Not Connected'}
+                            size={'large'}
+                    />
+                  </Col>
+                </Row>
+              </Card>
             </Content>
           </TabPane>
           <TabPane tab="Receivers" key="2">
