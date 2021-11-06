@@ -1,7 +1,7 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import Head from 'next/head';
 import {Button, Col, Divider, Form, Input, Layout, Row, Select, Slider, Switch, Tabs, Card} from 'antd';
-import oscService from "../service/oscService";
+import OscService from "../service/oscService";
 
 const {
   Content,
@@ -12,6 +12,26 @@ const {Option} = Select;
 const {TabPane} = Tabs;
 
 const Home = () => {
+
+  let oscService;
+
+  const [connected, setConnected] = useState(false);
+
+  const addConnectionStatusHandler = () => {
+    oscService.handleMessage('/status', (msgObj) => {
+      const allValues = msgObj.msg.map((m) => m.value + '');
+      if (allValues.includes('off')) {
+        setConnected(false)
+      } else if (allValues.includes('running')) {
+        setConnected(true);
+      }
+    })
+  };
+
+  useEffect(() => {
+    oscService = new OscService();
+    addConnectionStatusHandler();
+  }, [])
 
   const onFinish = (values) => {
     console.log('Success:', values);
@@ -131,9 +151,10 @@ const Home = () => {
               <Card title={'Server Status'}>
                 <Row style={{flex: 1, flexDirection: 'row', justifyContent: 'flex-start'}}>
                   <Col span={10}>Connection Status</Col>
-                  <Col span={4}>
-                    <Switch loading
+                  <Col span={10}>
+                    <Switch loading={!connected}
                             defaultChecked={false}
+                            checked={connected}
                             checkedChildren={'Connected'}
                             unCheckedChildren={'Not Connected'}
                             size={'large'}

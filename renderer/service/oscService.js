@@ -1,6 +1,6 @@
 import OSC from 'osc-js';
 
-class OscService {
+export default class OscService {
   oscConn;
 
   constructor() {
@@ -9,9 +9,6 @@ class OscService {
           {send: {port: 3333}, open: {port: 4444}})
     });
     this.oscConn.open();
-    this.handleMessage('/status', function (msg) {
-      console.log("Received message: ", msg);
-    })
   }
 
   close() {
@@ -52,7 +49,4 @@ class OscService {
     }.bind(this));
   };
 }
-
-const oscService = new OscService();
-export default oscService;
 
