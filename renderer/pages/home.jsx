@@ -13,8 +13,7 @@ const {TabPane} = Tabs;
 
 const Home = () => {
 
-  let oscService;
-
+  const oscService = new OscService();
   const [connected, setConnected] = useState(false);
 
   const addConnectionStatusHandler = () => {
@@ -29,13 +28,24 @@ const Home = () => {
   };
 
   useEffect(() => {
-    oscService = new OscService();
-    addConnectionStatusHandler();
+    addConnectionStatusHandler(oscService);
   }, [])
 
   const onFinish = (values) => {
-    console.log('Success:', values);
+    oscService.sendMessage({path: "/call", msg: ['true']})
   };
+
+  const onNChanChange = (nchan) => {
+    oscService.sendMessage({path: "/nchan", msg: [parseInt(nchan)]})
+  }
+
+  const onBlockSizeChange = (blockSize) => {
+    oscService.sendMessage({path: "/blockSize", msg: [parseInt(blockSize)]})
+  }
+
+  const onInputGainChange = (gain) => {
+    oscService.sendMessage({path: "/inputGain", msg: [gain]})
+  }
 
   const onFinishFailed = (errorInfo) => {
     console.log('Failed:', errorInfo);
@@ -46,6 +56,10 @@ const Home = () => {
   const onReset = () => {
     form.resetFields();
   };
+
+  const onDisconnect = () => {
+    oscService.sendMessage({path: "/call", msg: ['false']})
+  }
 
   return (
       <React.Fragment>
@@ -92,7 +106,7 @@ const Home = () => {
                     labelCol={{span: 8}}
                     wrapperCol={{span: 8}}
                 >
-                  <Select size='small' style={{width: 100}}>
+                  <Select size='small' style={{width: 100}} onSelect={onNChanChange}>
                     <Option value='0'>0</Option>
                     <Option value='1'>1</Option>
                     <Option value='2'>2</Option>
@@ -105,10 +119,10 @@ const Home = () => {
                     labelCol={{span: 8}}
                     wrapperCol={{span: 8}}
                 >
-                  <Select size='small' style={{width: 100}}>
-                    <Option value='64'>64</Option>
-                    <Option value='128'>128</Option>
-                    <Option value='256'>256</Option>
+                  <Select size='small' style={{width: 100}} onSelect={onBlockSizeChange}>
+                    <Option value='0'>64</Option>
+                    <Option value='1'>128</Option>
+                    <Option value='2'>256</Option>
                   </Select>
                 </FormItem>
 
@@ -119,9 +133,7 @@ const Home = () => {
                     wrapperCol={{span: 8}}
                     valuePropName="checked"
                 >
-                  <Switch onClick={() => {
-                    oscService.sendMessage({path: '/message', msg: 'toggle'})
-                  }} />
+                  <Switch />
                 </FormItem>
 
                 <FormItem
@@ -130,17 +142,20 @@ const Home = () => {
                     labelCol={{span: 8}}
                     wrapperCol={{span: 8}}
                 >
-                  <Slider />
+                  <Slider onChange={onInputGainChange} />
                 </FormItem>
 
                 <FormItem
                     style={{marginTop: 48}}
-                    wrapperCol={{span: 8, offset: 8}}
+                    wrapperCol={{span: 32, offset: 4}}
                 >
-                  <Button size='large' type='primary' htmlType='submit'>
+                  <Button size='large' disabled={connected} type='primary' htmlType='submit'>
                     Connect
                   </Button>
-                  <Button size='large' style={{marginLeft: 8}} htmlType="button" onClick={onReset}>
+                  <Button size='large' disabled={!connected} danger type='cancel' style={{marginLeft: 8}} htmlType="button" onClick={onDisconnect}>
+                    Disconnect
+                  </Button>
+                  <Button size='large' disabled={connected} style={{marginLeft: 10}} htmlType="button" onClick={onReset}>
                     Reset
                   </Button>
                 </FormItem>
