@@ -46,10 +46,19 @@ const Home = () => {
 
   const onInputGainChange = (gain) => {
     oscService.sendMessage({path: "/inputGain", msg: [gain]})
+    form.setFieldsValue({ mute: false });
   }
 
   const onServerChange = (server) => {
     oscService.sendMessage({path: "/serverName", msg: [server.target.value]})
+  }
+
+  const onChannelNameChange = (channel) => {
+    oscService.sendMessage({path: "/channelName", msg: [channel.target.value]})
+  }
+
+  const onCallNameChange = (callName) => {
+    oscService.sendMessage({path: "/callName", msg: [callName.target.value]})
   }
 
   const onPortChange = (port) => {
@@ -59,6 +68,14 @@ const Home = () => {
   const onFinishFailed = (errorInfo) => {
     console.log('Failed:', errorInfo);
   };
+
+  const on2XChange = (value) => {
+    oscService.sendMessage({path: "/2x", msg: [value ? 1 : 0]})
+  }
+
+  const onMute = (value) => {
+    oscService.sendMessage({path: "/mute", msg: [value ? 1 : 0]})
+  }
 
   const [form] = Form.useForm();
 
@@ -106,8 +123,28 @@ const Home = () => {
                     labelCol={{span: 8}}
                     wrapperCol={{span: 8}}
                 >
-                  <Input size='large' disabled={connected} style={{width: 300}} name='port' onBlur={onPortChange}/>
+                  <Input size='large' disabled={connected} style={{width: 100}} name='port' onBlur={onPortChange}/>
                 </FormItem>
+
+                <FormItem
+                    name='channelName'
+                    label='Channel Name'
+                    labelCol={{span: 8}}
+                    wrapperCol={{span: 8}}
+                >
+                  <Input size='large' disabled={connected} style={{width: 300}} name='channelName' onBlur={onChannelNameChange}/>
+                </FormItem>
+
+                <FormItem
+                    name='callName'
+                    label='Call Name'
+                    labelCol={{span: 8}}
+                    wrapperCol={{span: 8}}
+                >
+                  <Input size='large' disabled={connected} style={{width: 300}} name='callName' onBlur={onCallNameChange}/>
+                </FormItem>
+
+                <Divider plain/>
 
                 <FormItem
                     name='inputChannels'
@@ -136,13 +173,23 @@ const Home = () => {
                 </FormItem>
 
                 <FormItem
+                    name='mute'
+                    label='Mute'
+                    labelCol={{span: 8}}
+                    wrapperCol={{span: 8}}
+                    valuePropName="checked"
+                >
+                  <Switch onChange={onMute} />
+                </FormItem>
+
+                <FormItem
                     name='2x'
                     label='2X'
                     labelCol={{span: 8}}
                     wrapperCol={{span: 8}}
                     valuePropName="checked"
                 >
-                  <Switch />
+                  <Switch onChange={on2XChange} />
                 </FormItem>
 
                 <FormItem
@@ -153,6 +200,8 @@ const Home = () => {
                 >
                   <Slider onChange={onInputGainChange} />
                 </FormItem>
+
+                <Divider plain/>
 
                 <FormItem
                     style={{marginTop: 48}}
