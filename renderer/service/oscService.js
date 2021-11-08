@@ -38,7 +38,6 @@ class OscService {
 
   sendMessage(message) {
     try {
-      console.log('sending message - ', message)
       const oscMessage = new OSC.Message(message.path, ...message.msg);
       const date = new Date();
       const oscBundle = new OSC.Bundle([oscMessage], date);
