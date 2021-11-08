@@ -48,6 +48,14 @@ const Home = () => {
     oscService.sendMessage({path: "/inputGain", msg: [gain]})
   }
 
+  const onServerChange = (server) => {
+    oscService.sendMessage({path: "/serverName", msg: [server.target.value]})
+  }
+
+  const onPortChange = (port) => {
+    oscService.sendMessage({path: "/serverPort", msg: [parseInt(port.target.value)]})
+  }
+
   const onFinishFailed = (errorInfo) => {
     console.log('Failed:', errorInfo);
   };
@@ -76,7 +84,7 @@ const Home = () => {
                     onFinishFailed={onFinishFailed}
                     autoComplete="off"
                     initialValues={{
-                      'serverAddress': 'netty.scottlmiller.net',
+                      'serverAddress': 'localhost',
                       'serverPort': '38400',
                       'inputChannels': '2',
                       'blockSize': '64',
@@ -89,7 +97,7 @@ const Home = () => {
                     labelCol={{span: 8}}
                     wrapperCol={{span: 8}}
                 >
-                  <Input size='large' style={{width: 300}} name='ipAddress'/>
+                  <Input size='large' disabled={connected} style={{width: 300}} name='ipAddress' onBlur={onServerChange}/>
                 </FormItem>
 
                 <FormItem
@@ -98,7 +106,7 @@ const Home = () => {
                     labelCol={{span: 8}}
                     wrapperCol={{span: 8}}
                 >
-                  <Input size='large' style={{width: 300}} name='port'/>
+                  <Input size='large' disabled={connected} style={{width: 300}} name='port' onBlur={onPortChange}/>
                 </FormItem>
 
                 <FormItem
