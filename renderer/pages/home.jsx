@@ -13,22 +13,23 @@ const {TabPane} = Tabs;
 
 const Home = () => {
 
-  const oscService = new OscService();
   const [connected, setConnected] = useState(false);
 
-  const addConnectionStatusHandler = () => {
-    oscService.handleMessage('/status', (msgObj) => {
-      const allValues = msgObj.msg.map((m) => m.value + '');
-      if (allValues.includes('off')) {
-        setConnected(false)
-      } else if (allValues.includes('running')) {
-        setConnected(true);
-      }
-    })
-  };
+  let oscService;
 
   useEffect(() => {
-    addConnectionStatusHandler(oscService);
+    oscService = new OscService();
+    oscService.handleMessage('/status', function (msgObj) {
+      const allValues = msgObj.msg.map((m) => m.value + '');
+      console.log("All values...", allValues);
+      if (allValues.includes('off')) {
+        console.log("Setting connected to false");
+        setConnected(false)
+      } else if (allValues.includes('running')) {
+        console.log("Setting connected to true");
+        setConnected(true);
+      }
+    });
   }, [])
 
   const onFinish = (values) => {

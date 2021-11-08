@@ -46,7 +46,7 @@ export default class OscService {
       });
       const msgObj = {path: msg.address, msg: values};
       messageCallback(msgObj);
-    }.bind(this));
+    });
   };
 }
 
