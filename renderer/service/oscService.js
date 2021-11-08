@@ -24,9 +24,7 @@ class OscService {
 
   open() {
     if (!this.alreadyOpen) {
-      try {
-        this.oscConn.open();
-      } catch {}
+      this.oscConn.open();
       this.alreadyOpen = true;
     }
   }

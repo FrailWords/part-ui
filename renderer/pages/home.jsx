@@ -32,49 +32,53 @@ const Home = () => {
     }
   }, []);
 
+  const sendMessage = (path, value) => {
+    oscService.sendMessage({path, msg: [value]})
+  }
+
   const onFinish = (_) => {
-    oscService.sendMessage({path: "/call", msg: ['true']})
+    sendMessage("/call", 'true');
   };
-
-  const onNChanChange = (nchan) => {
-    oscService.sendMessage({path: "/nchan", msg: [parseInt(nchan)]})
-  }
-
-  const onBlockSizeChange = (blockSize) => {
-    oscService.sendMessage({path: "/blockSize", msg: [parseInt(blockSize)]})
-  }
-
-  const onInputGainChange = (gain) => {
-    oscService.sendMessage({path: "/inputGain", msg: [gain]})
-    form.setFieldsValue({ mute: false });
-  }
-
-  const onServerChange = (server) => {
-    oscService.sendMessage({path: "/serverName", msg: [server.target.value]})
-  }
-
-  const onChannelNameChange = (channel) => {
-    oscService.sendMessage({path: "/channelName", msg: [channel.target.value]})
-  }
-
-  const onCallNameChange = (callName) => {
-    oscService.sendMessage({path: "/callName", msg: [callName.target.value]})
-  }
-
-  const onPortChange = (port) => {
-    oscService.sendMessage({path: "/serverPort", msg: [parseInt(port.target.value)]})
-  }
 
   const onFinishFailed = (errorInfo) => {
     console.log('Failed:', errorInfo);
   };
 
+  const onNChanChange = (nchan) => {
+    sendMessage("/nchan", parseInt(nchan));
+  }
+
+  const onBlockSizeChange = (blockSize) => {
+    sendMessage("/blockSize", parseInt(blockSize));
+  }
+
+  const onInputGainChange = (gain) => {
+    sendMessage("/inputGain", gain);
+    form.setFieldsValue({ mute: false });
+  }
+
+  const onServerChange = (server) => {
+    sendMessage("/serverName", server.target.value);
+  }
+
+  const onChannelNameChange = (channel) => {
+    sendMessage("/channelName", channel.target.value);
+  }
+
+  const onCallNameChange = (callName) => {
+    sendMessage("/callName", callName.target.value);
+  }
+
+  const onPortChange = (port) => {
+    sendMessage("/serverPort", parseInt(port.target.value));
+  }
+
   const on2XChange = (value) => {
-    oscService.sendMessage({path: "/2x", msg: [value ? 1 : 0]})
+    sendMessage("/2x", value ? 1 : 0);
   }
 
   const onMute = (value) => {
-    oscService.sendMessage({path: "/mute", msg: [value ? 1 : 0]})
+    sendMessage("/mute", value ? 1 : 0);
   }
 
   const [form] = Form.useForm();
@@ -107,6 +111,8 @@ const Home = () => {
                       'blockSize': '64',
                       '2x': false,
                       'inputGain': 50,
+                      'channelName': 'performance',
+                      'callName': 'test',
                     }}>
                 <FormItem
                     name='serverAddress'
