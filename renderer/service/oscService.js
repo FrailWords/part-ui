@@ -1,18 +1,39 @@
 import OSC from 'osc-js';
 
-export default class OscService {
+const getPSType = (s) => {
+  switch (s) {
+    case 's':
+      return 'OSCString';
+    case 'i':
+      return 'OSCInt';
+    case 'f':
+      return 'OSCFloat';
+  }
+};
+
+class OscService {
   oscConn;
+  alreadyOpen = false;
 
   constructor() {
     this.oscConn = new OSC({
       plugin: new OSC.DatagramPlugin(
           {send: {port: 3333}, open: {port: 4444}})
     });
-    this.oscConn.open();
+  }
+
+  open() {
+    if (!this.alreadyOpen) {
+      this.oscConn.open();
+      this.alreadyOpen = true;
+    }
   }
 
   close() {
-    this.oscConn.close();
+    if (this.alreadyOpen) {
+      this.oscConn.close();
+      this.alreadyOpen = false;
+    }
   }
 
   sendMessage(message) {
@@ -27,22 +48,10 @@ export default class OscService {
     }
   }
 
-  getPSType(s) {
-    switch (s) {
-      case 's':
-        return 'OSCString';
-      case 'i':
-        return 'OSCInt';
-      case 'f':
-        return 'OSCFloat';
-    }
-  };
-
   handleMessage(path, messageCallback) {
-    const that = this;
     this.oscConn.on(path, function (msg) {
       const values = msg.args.map(function (val, i) {
-        return {type: that.getPSType(msg.types[i + 1]), value: val}
+        return {type: getPSType(msg.types[i + 1]), value: val}
       });
       const msgObj = {path: msg.address, msg: values};
       messageCallback(msgObj);
@@ -50,3 +59,5 @@ export default class OscService {
   };
 }
 
+const oscService = new OscService();
+export default oscService;

@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import Head from 'next/head';
 import {Button, Col, Divider, Form, Input, Layout, Row, Select, Slider, Switch, Tabs, Card} from 'antd';
-import OscService from "../service/oscService";
+import oscService from "../service/oscService";
 
 const {
   Content,
@@ -15,24 +15,24 @@ const Home = () => {
 
   const [connected, setConnected] = useState(false);
 
-  let oscService;
+  oscService.handleMessage('/status', msgObj => {
+    const allValues = msgObj.msg.map((m) => m.value + '');
+    if (allValues.includes('off')) {
+      setConnected(false)
+    } else if (allValues.includes('running')) {
+      setConnected(true);
+    }
+  });
 
   useEffect(() => {
-    oscService = new OscService();
-    oscService.handleMessage('/status', function (msgObj) {
-      const allValues = msgObj.msg.map((m) => m.value + '');
-      console.log("All values...", allValues);
-      if (allValues.includes('off')) {
-        console.log("Setting connected to false");
-        setConnected(false)
-      } else if (allValues.includes('running')) {
-        console.log("Setting connected to true");
-        setConnected(true);
-      }
-    });
-  }, [])
+    oscService.open();
 
-  const onFinish = (values) => {
+    return () => {
+      oscService.close();
+    }
+  }, []);
+
+  const onFinish = (_) => {
     oscService.sendMessage({path: "/call", msg: ['true']})
   };
 
@@ -168,7 +168,8 @@ const Home = () => {
                 <Row style={{flex: 1, flexDirection: 'row', justifyContent: 'flex-start'}}>
                   <Col span={10}>Connection Status</Col>
                   <Col span={10}>
-                    <Switch loading={!connected}
+                    <Switch disabled
+                            loading={!connected}
                             defaultChecked={false}
                             checked={connected}
                             checkedChildren={'Connected'}
