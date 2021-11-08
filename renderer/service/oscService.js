@@ -36,7 +36,11 @@ class OscService {
     }
   }
 
-  sendMessage(message) {
+  sendMessage = (path, value) => {
+    this._sendMessage({path, msg: [value]})
+  }
+
+  _sendMessage(message) {
     try {
       const oscMessage = new OSC.Message(message.path, ...message.msg);
       const date = new Date();

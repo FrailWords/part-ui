@@ -32,12 +32,8 @@ const Home = () => {
     }
   }, []);
 
-  const sendMessage = (path, value) => {
-    oscService.sendMessage({path, msg: [value]})
-  }
-
   const onFinish = (_) => {
-    sendMessage("/call", 'true');
+    oscService.sendMessage("/call", 'true');
   };
 
   const onFinishFailed = (errorInfo) => {
@@ -45,40 +41,40 @@ const Home = () => {
   };
 
   const onNChanChange = (nchan) => {
-    sendMessage("/nchan", parseInt(nchan));
+    oscService.sendMessage("/nchan", parseInt(nchan));
   }
 
   const onBlockSizeChange = (blockSize) => {
-    sendMessage("/blockSize", parseInt(blockSize));
+    oscService.sendMessage("/blockSize", parseInt(blockSize));
   }
 
   const onInputGainChange = (gain) => {
-    sendMessage("/inputGain", gain);
+    oscService.sendMessage("/inputGain", gain);
     form.setFieldsValue({ mute: false });
   }
 
   const onServerChange = (server) => {
-    sendMessage("/serverName", server.target.value);
+    oscService.sendMessage("/serverName", server.target.value);
   }
 
   const onChannelNameChange = (channel) => {
-    sendMessage("/channelName", channel.target.value);
+    oscService.sendMessage("/channelName", channel.target.value);
   }
 
   const onCallNameChange = (callName) => {
-    sendMessage("/callName", callName.target.value);
+    oscService.sendMessage("/callName", callName.target.value);
   }
 
   const onPortChange = (port) => {
-    sendMessage("/serverPort", parseInt(port.target.value));
+    oscService.sendMessage("/serverPort", parseInt(port.target.value));
   }
 
   const on2XChange = (value) => {
-    sendMessage("/2x", value ? 1 : 0);
+    oscService.sendMessage("/2x", value ? 1 : 0);
   }
 
   const onMute = (value) => {
-    sendMessage("/mute", value ? 1 : 0);
+    oscService.sendMessage("/mute", value ? 1 : 0);
   }
 
   const [form] = Form.useForm();
@@ -88,7 +84,7 @@ const Home = () => {
   };
 
   const onDisconnect = () => {
-    oscService.sendMessage({path: "/call", msg: ['false']})
+    oscService.sendMessage("/call", 'false');
   }
 
   return (
