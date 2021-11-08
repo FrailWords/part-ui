@@ -23,8 +23,10 @@ class OscService {
   }
 
   open() {
-    if (!this.alreadyOpen && this.oscConn.status() === -1) {
-      this.oscConn.open();
+    if (!this.alreadyOpen) {
+      try {
+        this.oscConn.open();
+      } catch {}
       this.alreadyOpen = true;
     }
   }

@@ -205,7 +205,7 @@ const Home = () => {
 
                 <FormItem
                     style={{marginTop: 48}}
-                    wrapperCol={{span: 32, offset: 4}}
+                    wrapperCol={{span: 32, offset: 8}}
                 >
                   <Button size='large' disabled={connected} type='primary' htmlType='submit'>
                     Connect
