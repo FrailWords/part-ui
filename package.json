@@ -11,6 +11,7 @@
     "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
+    "@ant-design/icons": "^4.7.0",
     "electron-serve": "^1.1.0",
     "electron-store": "^8.0.1",
     "osc-js": "^2.1.2"

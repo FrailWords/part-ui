@@ -37,7 +37,7 @@ class OscService {
   }
 
   sendMessage = (path, value) => {
-    this._sendMessage({path, msg: [value]})
+    this._sendMessage({path, msg: Array.isArray(value) ? value : [value]})
   }
 
   _sendMessage(message) {

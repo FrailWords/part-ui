@@ -1,7 +1,9 @@
-import React, {useEffect, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import Head from 'next/head';
 import {Button, Col, Divider, Form, Input, Layout, Row, Select, Slider, Switch, Tabs, Card} from 'antd';
 import oscService from "../service/oscService";
+import Receiver from "../components/receiver";
+import ReceiversTab from "../components/receivers_tab";
 
 const {
   Content,
@@ -15,14 +17,22 @@ const Home = () => {
 
   const [connected, setConnected] = useState(false);
 
-  oscService.handleMessage('/status', msgObj => {
+  oscService.handleMessage('*', msgObj => {
     const allValues = msgObj.msg.map((m) => m.value + '');
-    if (allValues.includes('off')) {
-      setConnected(false)
-    } else if (allValues.includes('running')) {
-      setConnected(true);
+    if (msgObj.path === '/status') {
+      if (allValues.includes('off')) {
+        setConnected(false)
+      } else if (allValues.includes('running')) {
+        setConnected(true);
+      }
+      return
+    }
+    if (msgObj.path === '/receiver') {
+      setReceiver(allValues);
     }
   });
+
+  const [receiver, setReceiver] = useState();
 
   useEffect(() => {
     oscService.open();
@@ -191,7 +201,7 @@ const Home = () => {
                     wrapperCol={{span: 8}}
                     valuePropName="checked"
                 >
-                  <Switch onChange={on2XChange} />
+                  <Switch onChange={on2XChange} disabled />
                 </FormItem>
 
                 <FormItem
@@ -240,7 +250,8 @@ const Home = () => {
               </Card>
             </Content>
           </TabPane>
-          <TabPane tab="Receivers" key="2">
+          <TabPane tab="Receivers" key="2" forceRender={true}>
+            <ReceiversTab receiver={receiver} />
           </TabPane>
         </Tabs>
       </React.Fragment>
