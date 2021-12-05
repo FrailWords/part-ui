@@ -12,16 +12,13 @@ const styles = {
 
 const Receiver = ({receiver, name}) => {
 
-  const [vuValues, setVuValues] = useState([-20, -25]);
+  const [vuValues, setVuValues] = useState([-40, -40]);
   const [connected, setConnected] = useState(false);
   const [mute, setMute] = useState(false);
   const [receiverNumber, setReceiverNumber] = useState(0);
   const [receiverName, setReceiverName] = useState(name);
 
   useEffect(() => {
-    if (receiver) {
-      setVuValues([receiver[0], receiver[1]])
-    }
   }, [receiver]);
 
   const onMute = (value) => {
@@ -85,7 +82,7 @@ const Receiver = ({receiver, name}) => {
             </Row>
           </Col>
           <Col flex={3}>
-            <VuMeter vu={vuValues}/>
+            {/*<VuMeter vu={vuValues}/>*/}
           </Col>
         </Row>
       </Col>
