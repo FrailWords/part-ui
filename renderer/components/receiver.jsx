@@ -1,13 +1,14 @@
-import {Col, Divider, Row, Slider, Switch, Tag} from 'antd';
+import {Card, Col, Divider, Row, Slider, Tag} from 'antd';
 import {useEffect, useRef, useState} from "react";
 import oscService from "../service/oscService";
 import {AudioMutedOutlined, AudioOutlined} from "@ant-design/icons"
 import Text from "antd/lib/typography/Text";
-import {VuMeter} from "./vuMeter";
+import {colorMap, VuMeter} from "./vuMeter";
 
 const styles = {
   label: {fontWeight: 'bold'},
-  muteButtonIcon: {fontSize: '150%', verticalAlign: 'middle', padding: '5px', alignItems: 'center'}
+  muteButtonIcon: {fontSize: '150%', verticalAlign: 'middle', padding: '5px', alignItems: 'center'},
+  receiverLabelRow: {display: 'flex', alignItems: 'center', padding: '10px'}
 }
 
 function useInterval(callback, delay) {
@@ -23,6 +24,7 @@ function useInterval(callback, delay) {
     function tick() {
       savedCallback.current();
     }
+
     if (delay !== null) {
       let id = setInterval(tick, delay);
       return () => clearInterval(id);
@@ -38,6 +40,7 @@ const Receiver = ({receiver}) => {
   const [receiverIndex, setReceiverIndex] = useState();
   const [receiverNumber, setReceiverNumber] = useState();
   const [mute, setMute] = useState(false);
+  const [lastReceived, setLastReceived] = useState(Date.now());
 
   useEffect(() => {
     if (receiver) {
@@ -46,8 +49,16 @@ const Receiver = ({receiver}) => {
       setReceiverNumber(receiver.number);
       setVuValues([receiver.vu1, receiver.vu2]);
       setConnected(true);
+      setLastReceived(Date.now())
     }
   }, [receiver]);
+
+  useInterval(() => {
+    const sinceLastReceived = (Date.now() - lastReceived) / 1000;
+    if (sinceLastReceived >= 1) {
+      setConnected(false);
+    }
+  }, 100);
 
   const onMute = (value) => {
     oscService.sendMessage("/receiverMute", value ? [receiverNumber, receiverIndex, 1] : [receiverNumber, receiverIndex, 0]);
@@ -63,56 +74,44 @@ const Receiver = ({receiver}) => {
   }
 
   return (
-      <Col span={12} style={{ padding: '20px'}}>
+      <Col span={24} style={{padding: '20px'}}>
         <Divider orientation="left"/>
-        <Row style={{ padding: '20px'}}>
-          <Col flex={3}>
-            <Row style={{display: 'flex', alignItems: 'center'}}>
-              <Col span={10}>
-                <Text style={styles.label}>Receiver Name</Text>
-              </Col>
-              <Col span={12}>
-                <Text>{receiverName}</Text>
-              </Col>
-            </Row>
-            <Row style={{display: 'flex', alignItems: 'center'}}>
-              <Col span={10}>
-                <Text style={styles.label}>Mute</Text>
-              </Col>
-              <Col span={12}>
-                <Tag icon={mute ? <AudioMutedOutlined style={styles.muteButtonIcon} theme="outlined"/> :
-                    <AudioOutlined style={styles.muteButtonIcon} theme="outlined"/>} onClick={toggleMute}
-                     color={mute ? 'error' : 'success'}/>
-              </Col>
-            </Row>
-            <Row style={{display: 'flex', alignItems: 'center'}}>
-              <Col span={10}>
-                <Text style={styles.label}>Receiver Mix Gain</Text>
-              </Col>
-              <Col span={12}>
-                <Slider style={{marginLeft: 0}} onChange={onInputGainChange} defaultValue={30}/>
-              </Col>
-            </Row>
-            <Row style={{display: 'flex', alignItems: 'center'}}>
-              <Col span={10}>
-                <Text style={styles.label}>Connected Status</Text>
-              </Col>
-              <Col span={12}>
-                <Switch disabled
-                        loading={!connected}
-                        defaultChecked={false}
-                        checked={connected}
-                        checkedChildren={'Connected'}
-                        unCheckedChildren={'Not Connected'}
-                        size={'small'}
-                />
-              </Col>
-            </Row>
-          </Col>
-          <Col flex={3}>
-            {/*<VuMeter vu={vuValues}/>*/}
-          </Col>
-        </Row>
+        <Card title={`Receiver Name - ${receiverName}`}>
+          <Row style={{padding: '10px'}}>
+            <Col flex={3}>
+              <Row style={styles.receiverLabelRow}>
+                <Col span={10}>
+                  <Text style={styles.label}>Mute</Text>
+                </Col>
+                <Col span={14}>
+                  <Tag icon={mute ? <AudioMutedOutlined style={styles.muteButtonIcon} theme="outlined"/> :
+                      <AudioOutlined style={styles.muteButtonIcon} theme="outlined"/>} onClick={toggleMute}
+                       color={mute ? 'error' : 'success'}/>
+                </Col>
+              </Row>
+              <Row style={styles.receiverLabelRow}>
+                <Col span={10}>
+                  <Text style={styles.label}>Receiver Mix Gain</Text>
+                </Col>
+                <Col span={14}>
+                  <Slider style={{marginLeft: 0}} onChange={onInputGainChange} defaultValue={30}/>
+                </Col>
+              </Row>
+              <Row style={styles.receiverLabelRow}>
+                <Col span={10}>
+                  <Text style={styles.label}>Connected Status</Text>
+                </Col>
+                <Col span={14}>
+                  <Text
+                      style={connected ? {color: colorMap.green} : {color: colorMap.red}}>{connected ? 'Connected' : 'Not Connected'}</Text>
+                </Col>
+              </Row>
+            </Col>
+            <Col flex={3}>
+              <VuMeter vu={vuValues}/>
+            </Col>
+          </Row>
+        </Card>
       </Col>
   )
 }

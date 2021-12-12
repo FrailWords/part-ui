@@ -15,7 +15,7 @@ const styles = {
   }
 };
 
-const colorMap = {
+export const colorMap = {
   'green': '#008000',
   'yellow': '#ffff00',
   'orange': '#ffa500',

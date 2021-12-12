@@ -31,7 +31,7 @@ const ReceiversTab = () => {
       }
     })
   };
-  oscService.handleMessage('/receiver', _.debounce(messageCallback, 250));
+  oscService.handleMessage('/receiver', _.debounce(messageCallback, 200));
 
   return (
       <Content style={{padding: 10}}>
