@@ -37,7 +37,6 @@ const Receiver = ({receiver}) => {
   const [vuValues, setVuValues] = useState([-85, -85]);
   const [connected, setConnected] = useState(false);
   const [receiverName, setReceiverName] = useState('');
-  const [receiverIndex, setReceiverIndex] = useState();
   const [receiverNumber, setReceiverNumber] = useState();
   const [mute, setMute] = useState(false);
   const [lastReceived, setLastReceived] = useState(Date.now());
@@ -45,7 +44,6 @@ const Receiver = ({receiver}) => {
   useEffect(() => {
     if (receiver) {
       setReceiverName(receiver.name);
-      setReceiverIndex(receiver.index);
       setReceiverNumber(receiver.number);
       setVuValues([receiver.vu1, receiver.vu2]);
       setConnected(true);
@@ -61,11 +59,11 @@ const Receiver = ({receiver}) => {
   }, 100);
 
   const onMute = (value) => {
-    oscService.sendMessage("/receiverMute", value ? [receiverNumber, receiverIndex, 1] : [receiverNumber, receiverIndex, 0]);
+    oscService.sendMessage("/receiverMute", value ? [receiverNumber, 1] : [receiverNumber, 0]);
   }
 
   const onInputGainChange = (gain) => {
-    oscService.sendMessage("/receiverLevel", [receiverNumber, receiverIndex, gain]);
+    oscService.sendMessage("/receiverLevel", [receiverNumber, gain]);
   }
 
   const toggleMute = () => {

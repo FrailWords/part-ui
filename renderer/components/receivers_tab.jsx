@@ -16,16 +16,15 @@ const ReceiversTab = () => {
 
   const messageCallback = (msgObj) => {
     const allValues = msgObj.msg.map((m) => m.value);
+    console.log(allValues);
     const receiverNumber = allValues[0];
-    const receiverIndex = allValues[1];
-    const receiverName = allValues[2];
-    const vuValue1 = allValues[3];
-    const vuValue2 = allValues[4];
+    const receiverName = allValues[1];
+    const vuValue1 = allValues[2];
+    const vuValue2 = allValues[3];
     setReceiverMap({
       ...receiverMap, [receiverName]: {
         name: receiverName,
         number: receiverNumber,
-        index: receiverIndex,
         vu1: vuValue1,
         vu2: vuValue2,
       }
