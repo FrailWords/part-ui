@@ -1,67 +1,42 @@
 import {Layout, Row} from 'antd';
 import {useEffect, useRef, useState} from "react";
+import oscService from "../service/oscService";
 import Receiver from "./receiver";
+import _ from "lodash";
 
 const {
   Content,
 } = Layout;
 
-function useInterval(callback, delay) {
-  const savedCallback = useRef();
-
-  // Remember the latest function.
-  useEffect(() => {
-    savedCallback.current = callback;
-  }, [callback]);
-
-  // Set up the interval.
-  useEffect(() => {
-    function tick() {
-      savedCallback.current();
-    }
-    if (delay !== null) {
-      let id = setInterval(tick, delay);
-      return () => clearInterval(id);
-    }
-  }, [delay]);
-}
 
 
-const ReceiversTab = ({receiver}) => {
+const ReceiversTab = () => {
 
   const [receiverMap, setReceiverMap] = useState({});
 
-  useInterval(() => {
-    Object.keys(receiverMap).forEach((key) => {
-      receiverMap[key].connected = false;
+  const messageCallback = (msgObj) => {
+    const allValues = msgObj.msg.map((m) => m.value);
+    const receiverNumber = allValues[0];
+    const receiverIndex = allValues[1];
+    const receiverName = allValues[2];
+    const vuValue1 = allValues[3];
+    const vuValue2 = allValues[4];
+    setReceiverMap({
+      ...receiverMap, [receiverName]: {
+        name: receiverName,
+        number: receiverNumber,
+        index: receiverIndex,
+        vu1: vuValue1,
+        vu2: vuValue2,
+      }
     })
-  }, 1000);
-
-  useEffect(() => {
-    if (receiver) {
-      const receiverNumber = receiver[0];
-      const receiverName = receiver[1];
-      const vuValue1 = receiver[2];
-      const vuValue2 = receiver[3];
-      setReceiverMap({ ...receiverMap, [receiverNumber] : {
-          name: receiverName,
-          connected: true,
-          vu1: vuValue1,
-          vu2: vuValue2,
-        }})
-    }
-  }, [receiver]);
-
-  useEffect(() => {
-    console.log(receiverMap);
-  }, [receiverMap])
+  };
+  oscService.handleMessage('/receiver', _.debounce(messageCallback, 250));
 
   return (
       <Content style={{padding: 10}}>
         <Row>
-          {/*<Receiver receiver={receiverMap['sriram']} name={'Sriram'} />*/}
-          {/*<Receiver receiver={receiverMap['sriram']} name={'Sriram'}/>*/}
-          {/*<Receiver receiver={receiverMap['sriram']} name={'Sriram'}/>*/}
+          <Receiver receiver={receiverMap['sriram']} />
         </Row>
       </Content>
   )

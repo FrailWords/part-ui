@@ -16,22 +16,14 @@ const Home = () => {
 
   const [connected, setConnected] = useState(false);
 
-  oscService.handleMessage('*', msgObj => {
+  oscService.handleMessage('/status', msgObj => {
     const allValues = msgObj.msg.map((m) => m.value + '');
-    if (msgObj.path === '/status') {
-      if (allValues.includes('off')) {
-        setConnected(false)
-      } else if (allValues.includes('running')) {
-        setConnected(true);
-      }
-      return
-    }
-    if (msgObj.path === '/receiver') {
-      setReceiver(allValues);
+    if (allValues.includes('off')) {
+      setConnected(false)
+    } else if (allValues.includes('running')) {
+      setConnected(true);
     }
   });
-
-  const [receiver, setReceiver] = useState();
 
   useEffect(() => {
     oscService.open();
@@ -42,7 +34,7 @@ const Home = () => {
   }, []);
 
   const onFinish = (_) => {
-    oscService.sendMessage("/call", 'true');
+    oscService.sendMessage("/call", !connected+'');
   };
 
   const onFinishFailed = (errorInfo) => {
@@ -51,10 +43,6 @@ const Home = () => {
 
   const onNChanChange = (nchan) => {
     oscService.sendMessage("/nchan", parseInt(nchan));
-  }
-
-  const onBlockSizeChange = (blockSize) => {
-    oscService.sendMessage("/blockSize", parseInt(blockSize));
   }
 
   const onInputGainChange = (gain) => {
@@ -78,23 +66,11 @@ const Home = () => {
     oscService.sendMessage("/serverPort", parseInt(port.target.value));
   }
 
-  const on2XChange = (value) => {
-    oscService.sendMessage("/2x", value ? 1 : 0);
-  }
-
   const onMute = (value) => {
     oscService.sendMessage("/mute", value ? 1 : 0);
   }
 
   const [form] = Form.useForm();
-
-  const onReset = () => {
-    form.resetFields();
-  };
-
-  const onDisconnect = () => {
-    oscService.sendMessage("/call", 'false');
-  }
 
   return (
       <React.Fragment>
@@ -110,13 +86,11 @@ const Home = () => {
                     onFinishFailed={onFinishFailed}
                     autoComplete="off"
                     initialValues={{
-                      'serverAddress': 'localhost',
+                      'serverAddress': '192.168.1.7',
                       'serverPort': '38400',
                       'inputChannels': '2',
-                      'blockSize': '64',
-                      '2x': false,
                       'inputGain': 50,
-                      'channelName': 'performance',
+                      'channelName': 'sriram',
                       'callName': 'test',
                     }}>
                 <Card title={'Call Details'}>
@@ -182,19 +156,8 @@ const Home = () => {
                       <Option value='0'>0</Option>
                       <Option value='1'>1</Option>
                       <Option value='2'>2</Option>
-                    </Select>
-                  </FormItem>
-
-                  <FormItem
-                      name='blockSize'
-                      label='Block Size'
-                      labelCol={{span: 8}}
-                      wrapperCol={{span: 8}}
-                  >
-                    <Select size='small' style={{width: 100}} onSelect={onBlockSizeChange}>
-                      <Option value='0'>64</Option>
-                      <Option value='1'>128</Option>
-                      <Option value='2'>256</Option>
+                      <Option value='3'>3</Option>
+                      <Option value='4'>4</Option>
                     </Select>
                   </FormItem>
 
@@ -206,16 +169,6 @@ const Home = () => {
                       valuePropName="checked"
                   >
                     <Switch onChange={onMute}/>
-                  </FormItem>
-
-                  <FormItem
-                      name='2x'
-                      label='2X'
-                      labelCol={{span: 8}}
-                      wrapperCol={{span: 8}}
-                      valuePropName="checked"
-                  >
-                    <Switch onChange={on2XChange} disabled/>
                   </FormItem>
 
                   <FormItem
@@ -232,7 +185,7 @@ const Home = () => {
           </Col>
           <Col span={12}>
             <Content style={{padding: 10}}>
-              <ReceiversTab receiver={receiver}/>
+              <ReceiversTab />
             </Content>
           </Col>
         </Row>
