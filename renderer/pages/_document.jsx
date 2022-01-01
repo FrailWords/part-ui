@@ -1,11 +1,12 @@
-import Document, { Html, Head, Main, NextScript } from 'next/document';
+import Document, { Head, Html, Main, NextScript } from "next/document";
 
 export default class MyDocument extends Document {
-  render () {
+  render() {
     return (
       <Html>
         <Head>
-          <meta charSet='utf-8' />
+          <title>Controller Interface</title>
+          <meta charSet="utf-8" />
         </Head>
         <body>
           <Main />
@@ -14,4 +15,4 @@ export default class MyDocument extends Document {
       </Html>
     );
   }
-};
+}
