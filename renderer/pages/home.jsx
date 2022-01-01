@@ -18,12 +18,15 @@ import {
 import oscService from "../service/oscService";
 import _ from "lodash";
 import Receiver from "../components/receiver";
+import Store from "electron-store";
 
 const { Content } = Layout;
 const { Item: FormItem } = Form;
 const { Option } = Select;
 const { Panel } = Collapse;
 const { Text } = Typography;
+
+const store = new Store({ watch: true });
 
 const Home = () => {
   const [connected, setConnected] = useState(false);
@@ -136,16 +139,22 @@ const Home = () => {
               onFinish={onFinish}
               onFinishFailed={onFinishFailed}
               autoComplete="off"
-              initialValues={{
-                serverAddress: "192.168.1.7",
-                serverPort: "38400",
-                inputChannels: "2",
-                inputGain: 50,
-                channelName: "sriram",
-                callName: "test",
-              }}
+              initialValues={store.get("settings")}
             >
-              <Card title={"Call Details"}>
+              <Card
+                title={"Call Details"}
+                extra={
+                  <Button
+                    size="large"
+                    type={"default"}
+                    shape="round"
+                    style={{ fontWeight: "bold" }}
+                    onClick={() => store.openInEditor()}
+                  >
+                    Edit Settings
+                  </Button>
+                }
+              >
                 <FormItem
                   name="serverAddress"
                   label="Server Address"
