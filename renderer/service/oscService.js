@@ -1,13 +1,13 @@
-import OSC from 'osc-js';
+import OSC from "osc-js";
 
 const getPSType = (s) => {
   switch (s) {
-    case 's':
-      return 'OSCString';
-    case 'i':
-      return 'OSCInt';
-    case 'f':
-      return 'OSCFloat';
+    case "s":
+      return "OSCString";
+    case "i":
+      return "OSCInt";
+    case "f":
+      return "OSCFloat";
   }
 };
 
@@ -17,8 +17,10 @@ class OscService {
 
   constructor() {
     this.oscConn = new OSC({
-      plugin: new OSC.DatagramPlugin(
-          {send: {port: 3333}, open: {port: 4444}})
+      plugin: new OSC.DatagramPlugin({
+        send: { port: 3333 },
+        open: { port: 4444 },
+      }),
     });
   }
 
@@ -37,8 +39,11 @@ class OscService {
   }
 
   sendMessage = (path, value) => {
-    this._sendMessage({path, msg: Array.isArray(value) ? value : [value]})
-  }
+    const valueIsArray = Array.isArray(value);
+    if ((valueIsArray && value[0] === "") || (!valueIsArray && value === ""))
+      return;
+    this._sendMessage({ path, msg: Array.isArray(value) ? value : [value] });
+  };
 
   _sendMessage(message) {
     try {
@@ -54,12 +59,12 @@ class OscService {
   handleMessage(path, messageCallback) {
     this.oscConn.on(path, function (msg) {
       const values = msg.args.map(function (val, i) {
-        return {type: getPSType(msg.types[i + 1]), value: val}
+        return { type: getPSType(msg.types[i + 1]), value: val };
       });
-      const msgObj = {path: msg.address, msg: values};
+      const msgObj = { path: msg.address, msg: values };
       messageCallback(msgObj);
     });
-  };
+  }
 }
 
 const oscService = new OscService();

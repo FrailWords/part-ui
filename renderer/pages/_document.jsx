@@ -5,7 +5,6 @@ export default class MyDocument extends Document {
     return (
       <Html>
         <Head>
-          <title>Controller Interface</title>
           <meta charSet="utf-8" />
         </Head>
         <body>
