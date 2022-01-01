@@ -11,8 +11,6 @@ const {
 const {Item: FormItem} = Form;
 const {Option} = Select;
 
-const {TabPane} = Tabs;
-
 const Home = () => {
 
   const [connected, setConnected] = useState(false);

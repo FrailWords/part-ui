@@ -8,7 +8,7 @@ import {useInterval} from "../hooks/useInterval";
 const styles = {
   label: {fontWeight: 'bold'},
   muteButtonIcon: {fontSize: '150%', verticalAlign: 'middle', padding: '5px', alignItems: 'center'},
-  receiverLabelRow: {display: 'flex', alignItems: 'center', padding: '10px'}
+  receiverLabelRow: {display: 'flex', alignItems: 'center', padding: '5px'}
 }
 
 const Receiver = ({receiver}) => {
@@ -53,10 +53,9 @@ const Receiver = ({receiver}) => {
   }
 
   return (
-      <Col span={24} style={{padding: '20px'}}>
-        <Divider orientation="left"/>
+      <Col span={24}>
         <Card title={`Receiver Name - ${receiverName}`}>
-          <Row style={{padding: '10px'}}>
+          <Row>
             <Col flex={3}>
               <Row style={styles.receiverLabelRow}>
                 <Col span={10}>
