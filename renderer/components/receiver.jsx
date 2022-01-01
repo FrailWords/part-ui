@@ -1,7 +1,7 @@
-import {Card, Col, Divider, Row, Slider, Switch, Tag} from 'antd';
+import {Button, Card, Col, Divider, Row, Slider, Switch, Tag} from 'antd';
 import React, {useEffect, useRef, useState} from "react";
 import oscService from "../service/oscService";
-import {AudioMutedOutlined, AudioOutlined} from "@ant-design/icons"
+import {AudioMutedOutlined, AudioOutlined, ClearOutlined} from "@ant-design/icons"
 import Text from "antd/lib/typography/Text";
 
 const styles = {
@@ -36,20 +36,20 @@ const Receiver = ({receiver}) => {
   const [connected, setConnected] = useState(false);
   const [receiverName, setReceiverName] = useState('');
   const [receiverNumber, setReceiverNumber] = useState();
+  const [receivedTimestamp, setReceivedTimestamp] = useState();
   const [mute, setMute] = useState(false);
-  const [lastReceived, setLastReceived] = useState(Date.now());
 
   useEffect(() => {
     if (receiver) {
       setReceiverName(receiver.name);
       setReceiverNumber(receiver.number);
       setConnected(true);
-      setLastReceived(Date.now())
+      setReceivedTimestamp(receiver.timestamp);
     }
   }, [receiver]);
 
   useInterval(() => {
-    const sinceLastReceived = (Date.now() - lastReceived) / 1000;
+    const sinceLastReceived = (Date.now() - receivedTimestamp) / 1000;
     if (sinceLastReceived >= 1) {
       setConnected(false);
     }
@@ -61,6 +61,10 @@ const Receiver = ({receiver}) => {
 
   const onInputGainChange = (gain) => {
     oscService.sendMessage("/receiverLevel", [receiverNumber, gain]);
+  }
+
+  const onResetPackets = () => {
+    oscService.sendMessage("/receiverPacketsReset", [receiverNumber, 1]);
   }
 
   const toggleMute = () => {
@@ -90,6 +94,14 @@ const Receiver = ({receiver}) => {
                 </Col>
                 <Col span={14}>
                   <Slider style={{marginLeft: 0}} onChange={onInputGainChange} defaultValue={30}/>
+                </Col>
+              </Row>
+              <Row style={styles.receiverLabelRow}>
+                <Col span={10}>
+                  <Text style={styles.label}>Reset Packet Count</Text>
+                </Col>
+                <Col span={14}>
+                  <Button type="primary" icon={<ClearOutlined/>} onClick={onResetPackets}/>
                 </Col>
               </Row>
               <Row style={styles.receiverLabelRow}>

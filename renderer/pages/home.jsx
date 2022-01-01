@@ -2,6 +2,7 @@ import React, {useEffect, useState} from 'react';
 import Head from 'next/head';
 import {Button, Card, Col, Divider, Form, Input, Layout, Row, Select, Slider, Switch, Tabs} from 'antd';
 import oscService from "../service/oscService";
+import _ from "lodash";
 import ReceiversTab from "../components/receivers_tab";
 
 const {
@@ -25,6 +26,23 @@ const Home = () => {
     }
   });
 
+  const [receiverMap, setReceiverMap] = useState({});
+
+  const messageCallback = (msgObj) => {
+    const allValues = msgObj.msg.map((m) => m.value);
+    console.log(allValues);
+    const receiverNumber = allValues[0];
+    const receiverName = allValues[1];
+    setReceiverMap({
+      ...receiverMap, [receiverName]: {
+        name: receiverName,
+        number: receiverNumber,
+        timestamp: Date.now(),
+      }
+    })
+  };
+  oscService.handleMessage('/receiver', _.debounce(messageCallback, 200));
+
   useEffect(() => {
     oscService.open();
 
@@ -34,7 +52,7 @@ const Home = () => {
   }, []);
 
   const onFinish = (_) => {
-    oscService.sendMessage("/call", !connected+'');
+    oscService.sendMessage("/call", !connected + '');
   };
 
   const onFinishFailed = (errorInfo) => {
@@ -144,7 +162,7 @@ const Home = () => {
                   </FormItem>
 
                 </Card>
-                <Divider />
+                <Divider/>
                 <Card title={'Send Audio'}>
                   <FormItem
                       name='inputChannels'
@@ -185,7 +203,7 @@ const Home = () => {
           </Col>
           <Col span={12}>
             <Content style={{padding: 10}}>
-              <ReceiversTab />
+              {Object.keys(receiverMap).map((key) => <ReceiversTab receiver={receiverMap[key]}/>)}
             </Content>
           </Col>
         </Row>
