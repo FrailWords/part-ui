@@ -1,34 +1,14 @@
 import {Button, Card, Col, Divider, Row, Slider, Switch, Tag} from 'antd';
-import React, {useEffect, useRef, useState} from "react";
+import React, {useEffect, useState} from "react";
 import oscService from "../service/oscService";
 import {AudioMutedOutlined, AudioOutlined, ClearOutlined} from "@ant-design/icons"
 import Text from "antd/lib/typography/Text";
+import {useInterval} from "../hooks/useInterval";
 
 const styles = {
   label: {fontWeight: 'bold'},
   muteButtonIcon: {fontSize: '150%', verticalAlign: 'middle', padding: '5px', alignItems: 'center'},
   receiverLabelRow: {display: 'flex', alignItems: 'center', padding: '10px'}
-}
-
-function useInterval(callback, delay) {
-  const savedCallback = useRef();
-
-  // Remember the latest function.
-  useEffect(() => {
-    savedCallback.current = callback;
-  }, [callback]);
-
-  // Set up the interval.
-  useEffect(() => {
-    function tick() {
-      savedCallback.current();
-    }
-
-    if (delay !== null) {
-      let id = setInterval(tick, delay);
-      return () => clearInterval(id);
-    }
-  }, [delay]);
 }
 
 const Receiver = ({receiver}) => {
