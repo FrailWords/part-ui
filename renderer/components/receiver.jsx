@@ -1,9 +1,8 @@
-import {Card, Col, Divider, Row, Slider, Tag} from 'antd';
-import {useEffect, useRef, useState} from "react";
+import {Card, Col, Divider, Row, Slider, Switch, Tag} from 'antd';
+import React, {useEffect, useRef, useState} from "react";
 import oscService from "../service/oscService";
 import {AudioMutedOutlined, AudioOutlined} from "@ant-design/icons"
 import Text from "antd/lib/typography/Text";
-import {colorMap, VuMeter} from "./vuMeter";
 
 const styles = {
   label: {fontWeight: 'bold'},
@@ -34,7 +33,6 @@ function useInterval(callback, delay) {
 
 const Receiver = ({receiver}) => {
 
-  const [vuValues, setVuValues] = useState([-85, -85]);
   const [connected, setConnected] = useState(false);
   const [receiverName, setReceiverName] = useState('');
   const [receiverNumber, setReceiverNumber] = useState();
@@ -45,7 +43,6 @@ const Receiver = ({receiver}) => {
     if (receiver) {
       setReceiverName(receiver.name);
       setReceiverNumber(receiver.number);
-      setVuValues([receiver.vu1, receiver.vu2]);
       setConnected(true);
       setLastReceived(Date.now())
     }
@@ -100,13 +97,9 @@ const Receiver = ({receiver}) => {
                   <Text style={styles.label}>Connected Status</Text>
                 </Col>
                 <Col span={14}>
-                  <Text
-                      style={connected ? {color: colorMap.green} : {color: colorMap.red}}>{connected ? 'Connected' : 'Not Connected'}</Text>
+                  <Switch checked={connected} disabled title={connected ? 'Connected' : 'Not Connected'}/>
                 </Col>
               </Row>
-            </Col>
-            <Col flex={3}>
-              <VuMeter vu={vuValues}/>
             </Col>
           </Row>
         </Card>
