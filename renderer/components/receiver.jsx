@@ -38,10 +38,6 @@ const Receiver = ({ receiver, connected }) => {
     setMute(muted);
   };
 
-  const toggleMute = (value) => {
-    updateMute(value);
-  };
-
   const onInputGainChange = (gain) => {
     oscService.sendMessage("/receiverLevel", [receiverNumber, gain]);
     setMute(false);
@@ -59,7 +55,7 @@ const Receiver = ({ receiver, connected }) => {
             <Text style={styles.label}>Mute</Text>
           </Col>
           <Col span={14}>
-            <Switch checked={mute} onChange={toggleMute} />
+            <Switch onChange={updateMute} />
           </Col>
         </Row>
         <Row style={styles.receiverLabelRow}>
