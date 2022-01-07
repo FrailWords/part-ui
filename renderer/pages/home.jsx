@@ -31,6 +31,7 @@ const store = new Store();
 
 const Home = () => {
   const [connected, setConnected] = useState(false);
+  const [receiverMap, setReceiverMap] = useState(new Map());
 
   oscService.handleMessage("/status", (msgObj) => {
     const allValues = msgObj.msg.map((m) => m.value + "");
@@ -41,10 +42,11 @@ const Home = () => {
     }
   });
 
-  const [receiverMap, setReceiverMap] = useState(new Map());
+  const updateMap = React.useCallback((k, v) => {
+    setReceiverMap(new Map(receiverMap.set(k, v)));
+  }, []);
 
-  const messageCallback = (msgObj) => {
-    const allValues = msgObj.msg.map((m) => m.value);
+  const updateReceivers = React.useCallback((allValues) => {
     const receiverNumber = allValues[0];
     const receiverName = allValues[1];
     const key = `${receiverName}-${receiverNumber}`
@@ -61,11 +63,12 @@ const Home = () => {
         connected: true,
       })
     }
-  };
+  }, [])
 
-  const updateMap = (k, v) => {
-    setReceiverMap(new Map(receiverMap.set(k, v)));
-  }
+
+  const messageCallback = (msgObj) => {
+    updateReceivers(msgObj.msg.map((m) => m.value))
+  };
 
   oscService.handleMessage("/receiver", _.debounce(messageCallback, 200));
 
@@ -78,14 +81,18 @@ const Home = () => {
   }, []);
 
   useInterval(() => {
-    [...receiverMap.keys()].map((key) => {
+    const keys = receiverMap.keys();
+    [...keys].map((key) => {
       const receiver = receiverMap.get(key);
-      const sinceLastReceived = (Date.now() - receiver.timestamp) / 1000;
-      if (sinceLastReceived >= 1) {
-        receiver.connected = false;
+      const sinceLastReceived = (Date.now() - receiver.timestamp) / 1000; // convert to seconds
+      if (sinceLastReceived >= 3 && receiver.connected) {
+        updateMap(key, {
+          ...receiverMap.get(key),
+          connected: false,
+        })
       }
     })
-  }, 1000);
+  }, 2000);
 
   const getExtra = (key) => {
     const receiver = receiverMap.get(key);
