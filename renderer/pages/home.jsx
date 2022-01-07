@@ -137,13 +137,26 @@ const Home = () => {
 
   const refreshSettings = () => {
     const settings = store.get("settings");
-    oscService.sendMessage("/nchan", parseInt(settings["inputChannels"]));
-    oscService.sendMessage("/inputGain", settings["inputGain"]);
-    oscService.sendMessage("/serverName", settings["serverAddress"]);
-    oscService.sendMessage("/channelName", settings["channelName"]);
-    oscService.sendMessage("/callName", settings["callName"]);
-    oscService.sendMessage("/serverPort", parseInt(settings["serverPort"]));
-    form.setFieldsValue(settings)
+    if (settings) {
+      oscService.sendMessage("/nchan", parseInt(settings["inputChannels"]));
+      oscService.sendMessage("/inputGain", settings["inputGain"]);
+      oscService.sendMessage("/serverName", settings["serverAddress"]);
+      oscService.sendMessage("/channelName", settings["channelName"]);
+      oscService.sendMessage("/callName", settings["callName"]);
+      oscService.sendMessage("/serverPort", parseInt(settings["serverPort"]));
+      form.setFieldsValue(settings)
+    } else {
+      store.set({
+        settings: {
+          inputChannels: "2",
+          inputGain: 50,
+          serverAddress: "server-address",
+          channelName: "channel-name",
+          callName: "call-name",
+          serverPort: 38400
+        }
+      })
+    }
   };
 
   useEffect(() => {
