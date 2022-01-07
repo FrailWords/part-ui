@@ -26,7 +26,7 @@ const { Option } = Select;
 const { Panel } = Collapse;
 const { Text } = Typography;
 
-const store = new Store({ watch: true });
+const store = new Store();
 
 const Home = () => {
   const [connected, setConnected] = useState(false);
@@ -124,6 +124,22 @@ const Home = () => {
 
   const [form] = Form.useForm();
 
+  const refreshSettings = () => {
+    const settings = store.get("settings");
+    oscService.sendMessage("/nchan", parseInt(settings["inputChannels"]));
+    oscService.sendMessage("/inputGain", settings["inputGain"]);
+    oscService.sendMessage("/serverName", settings["serverAddress"]);
+    oscService.sendMessage("/channelName", settings["channelName"]);
+    oscService.sendMessage("/callName", settings["callName"]);
+    oscService.sendMessage("/serverPort", parseInt(settings["serverPort"]));
+    form.setFieldsValue(settings)
+  };
+
+  useEffect(() => {
+    //on load, send all values from settings
+    refreshSettings();
+  }, []);
+
   return (
     <React.Fragment>
       <Head>
@@ -139,7 +155,6 @@ const Home = () => {
               onFinish={onFinish}
               onFinishFailed={onFinishFailed}
               autoComplete="off"
-              initialValues={store.get("settings")}
             >
               <Card
                 title={"Call Details"}
@@ -150,6 +165,7 @@ const Home = () => {
                     shape="round"
                     style={{ fontWeight: "bold" }}
                     onClick={() => store.openInEditor()}
+                    disabled={connected}
                   >
                     Edit Settings
                   </Button>
@@ -261,7 +277,6 @@ const Home = () => {
                 >
                   <Switch onChange={onMute} />
                 </FormItem>
-
                 <FormItem
                   name="inputGain"
                   label="Normal Gain"
@@ -277,23 +292,21 @@ const Home = () => {
         <Col span={12}>
           <Content style={{ padding: 10 }}>
             <Collapse>
-              {Object.keys(receiverMap).map((key) => {
-                return (
-                  <Panel
-                    header={`Receiver: ${key}`}
-                    bordered
+              {Object.keys(receiverMap).map((key) => (
+                <Panel
+                  header={`Receiver: ${key}`}
+                  bordered
+                  key={key}
+                  extra={getExtra(key)}
+                >
+                  <Receiver
                     key={key}
-                    extra={getExtra(key)}
-                  >
-                    <Receiver
-                      key={key}
-                      receiver={receiverMap[key]}
-                      connected={receiverConnected[key]}
-                      onDisconnected={onReceiverDisconnected}
-                    />
-                  </Panel>
-                );
-              })}
+                    receiver={receiverMap[key]}
+                    connected={receiverConnected[key]}
+                    onDisconnected={onReceiverDisconnected}
+                  />
+                </Panel>
+              ))}
             </Collapse>
           </Content>
         </Col>

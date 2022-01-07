@@ -1,13 +1,9 @@
-import { Button, Col, Row, Slider, Tag } from "antd";
-import React, { useEffect, useState } from "react";
+import {Button, Col, Row, Slider, Switch} from "antd";
+import React, {useEffect, useState} from "react";
 import oscService from "../service/oscService";
-import {
-  AudioMutedOutlined,
-  AudioOutlined,
-  ClearOutlined,
-} from "@ant-design/icons";
+import {ClearOutlined} from "@ant-design/icons";
 import Text from "antd/lib/typography/Text";
-import { useInterval } from "../hooks/useInterval";
+import {useInterval} from "../hooks/useInterval";
 
 const styles = {
   label: { fontWeight: "bold" },
@@ -41,45 +37,30 @@ const Receiver = ({ receiver, connected, onDisconnected }) => {
     }
   }, 200);
 
-  const onMute = (value) => {
+  const onMute = (mute) => {
     oscService.sendMessage(
       "/receiverMute",
-      value ? [receiverNumber, 1] : [receiverNumber, 0]
+      mute ? [receiverNumber, 1] : [receiverNumber, 0]
     );
+  };
+
+  const updateMute = muted => {
+    onMute(muted);
+    setMute(muted);
+  };
+
+  const toggleMute = (value) => {
+    updateMute(value);
   };
 
   const onInputGainChange = (gain) => {
     oscService.sendMessage("/receiverLevel", [receiverNumber, gain]);
+    setMute(false);
   };
 
   const onResetPackets = () => {
     oscService.sendMessage("/receiverPacketsReset", [receiverNumber, 1]);
   };
-
-  const toggleMute = () => {
-    onMute(!mute);
-    setMute(!mute);
-  };
-
-  const getMuteIcon = () =>
-    connected ? (
-      <Tag
-        icon={
-          mute ? (
-            <AudioMutedOutlined
-              style={styles.muteButtonIcon}
-              theme="outlined"
-            />
-          ) : (
-            <AudioOutlined style={styles.muteButtonIcon} theme="outlined" />
-          )
-        }
-        onClick={toggleMute}
-        color={mute ? "error" : "success"}
-      />
-    ) : (
-      <Text>--</Text>
-    );
 
   return (
     <Row>
@@ -88,7 +69,9 @@ const Receiver = ({ receiver, connected, onDisconnected }) => {
           <Col span={10}>
             <Text style={styles.label}>Mute</Text>
           </Col>
-          <Col span={14}>{getMuteIcon()}</Col>
+          <Col span={14}>
+            <Switch checked={mute} onChange={toggleMute} />
+          </Col>
         </Row>
         <Row style={styles.receiverLabelRow}>
           <Col span={10}>

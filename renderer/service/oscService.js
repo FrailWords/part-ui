@@ -26,14 +26,18 @@ class OscService {
 
   open() {
     if (!this.alreadyOpen) {
-      this.oscConn.open();
+      try {
+        this.oscConn.open();
+      } catch (_) {}
       this.alreadyOpen = true;
     }
   }
 
   close() {
     if (this.alreadyOpen) {
-      this.oscConn.close();
+      try {
+        this.oscConn.close();
+      } catch (_) {}
       this.alreadyOpen = false;
     }
   }
