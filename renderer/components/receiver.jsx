@@ -16,26 +16,15 @@ const styles = {
   receiverLabelRow: { display: "flex", alignItems: "center", padding: "5px" },
 };
 
-const Receiver = ({ receiver, connected, onDisconnected }) => {
-  const [receiverName, setReceiverName] = useState("");
-  const [receiverNumber, setReceiverNumber] = useState();
-  const [receivedTimestamp, setReceivedTimestamp] = useState();
+const Receiver = ({ receiver, connected }) => {
   const [mute, setMute] = useState(false);
+  const [receiverNumber, setReceiverNumber] = useState();
 
   useEffect(() => {
     if (receiver) {
-      setReceiverName(receiver.name);
       setReceiverNumber(receiver.number);
-      setReceivedTimestamp(receiver.timestamp);
     }
   }, [receiver]);
-
-  useInterval(() => {
-    const sinceLastReceived = (Date.now() - receivedTimestamp) / 1000;
-    if (sinceLastReceived >= 1) {
-      onDisconnected(receiverName);
-    }
-  }, 200);
 
   const onMute = (mute) => {
     oscService.sendMessage(

@@ -19,6 +19,7 @@ import oscService from "../service/oscService";
 import _ from "lodash";
 import Receiver from "../components/receiver";
 import Store from "electron-store";
+import {useInterval} from "../hooks/useInterval";
 
 const { Content } = Layout;
 const { Item: FormItem } = Form;
@@ -47,17 +48,18 @@ const Home = () => {
     const allValues = msgObj.msg.map((m) => m.value);
     const receiverNumber = allValues[0];
     const receiverName = allValues[1];
+    const key = `${receiverName}-${receiverNumber}`
     setReceiverMap({
       ...receiverMap,
-      [receiverName]: {
+      [key]: {
         name: receiverName,
         number: receiverNumber,
-        timestamp: Date.now(),
+        timestamp: Date.now()
       },
     });
     setReceiverConnected({
       ...receiverConnected,
-      [receiverName]: true,
+      [key]: true,
     });
   };
   oscService.handleMessage("/receiver", _.debounce(messageCallback, 200));
@@ -70,10 +72,21 @@ const Home = () => {
     };
   }, []);
 
-  const onReceiverDisconnected = (receiverName) => {
+  useInterval(() => {
+    Object.keys(receiverMap).map((key) => {
+      const receiver = receiverMap[key];
+      const sinceLastReceived = (Date.now() - receiver.timestamp) / 1000;
+      if (sinceLastReceived >= 1 && receiverConnected[key]) {
+        onReceiverDisconnected(key);
+      }
+    })
+  }, 1000);
+
+
+  const onReceiverDisconnected = (key) => {
     setReceiverConnected({
       ...receiverConnected,
-      [receiverName]: false,
+      [key]: false,
     });
   };
 
@@ -303,7 +316,6 @@ const Home = () => {
                     key={key}
                     receiver={receiverMap[key]}
                     connected={receiverConnected[key]}
-                    onDisconnected={onReceiverDisconnected}
                   />
                 </Panel>
               ))}
