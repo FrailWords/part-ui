@@ -18,8 +18,8 @@ class OscService {
   constructor() {
     this.oscConn = new OSC({
       plugin: new OSC.DatagramPlugin({
-        send: { port: 3333 },
-        open: { port: 4444 },
+        send: {port: 3333},
+        open: {port: 4444},
       }),
     });
   }
@@ -28,7 +28,8 @@ class OscService {
     if (!this.alreadyOpen) {
       try {
         this.oscConn.open();
-      } catch (_) {}
+      } catch (_) {
+      }
       this.alreadyOpen = true;
     }
   }
@@ -37,7 +38,8 @@ class OscService {
     if (this.alreadyOpen) {
       try {
         this.oscConn.close();
-      } catch (_) {}
+      } catch (_) {
+      }
       this.alreadyOpen = false;
     }
   }
@@ -46,7 +48,7 @@ class OscService {
     const valueIsArray = Array.isArray(value);
     if ((valueIsArray && value[0] === "") || (!valueIsArray && value === ""))
       return;
-    this._sendMessage({ path, msg: Array.isArray(value) ? value : [value] });
+    this._sendMessage({path, msg: Array.isArray(value) ? value : [value]});
   };
 
   _sendMessage(message) {
@@ -55,17 +57,16 @@ class OscService {
       const date = new Date();
       const oscBundle = new OSC.Bundle([oscMessage], date);
       this.oscConn.send(oscBundle);
-    } catch (error) {
-      console.error(error);
+    } catch (_) {
     }
   }
 
   handleMessage(path, messageCallback) {
     this.oscConn.on(path, function (msg) {
       const values = msg.args.map(function (val, i) {
-        return { type: getPSType(msg.types[i + 1]), value: val };
+        return {type: getPSType(msg.types[i + 1]), value: val};
       });
-      const msgObj = { path: msg.address, msg: values };
+      const msgObj = {path: msg.address, msg: values};
       messageCallback(msgObj);
     });
   }
