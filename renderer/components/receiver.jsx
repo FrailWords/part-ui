@@ -16,13 +16,15 @@ const styles = {
   receiverLabelRow: { display: "flex", alignItems: "center", padding: "5px" },
 };
 
-const Receiver = ({ receiver, connected }) => {
+const Receiver = ({ receiver }) => {
   const [mute, setMute] = useState(false);
   const [receiverNumber, setReceiverNumber] = useState();
+  const [connected, setConnected] = useState(false);
 
   useEffect(() => {
     if (receiver) {
       setReceiverNumber(receiver.number);
+      setConnected(receiver.connected);
     }
   }, [receiver]);
 
@@ -55,7 +57,7 @@ const Receiver = ({ receiver, connected }) => {
             <Text style={styles.label}>Mute</Text>
           </Col>
           <Col span={14}>
-            <Switch onChange={updateMute} />
+            <Switch checked={mute} onChange={updateMute} />
           </Col>
         </Row>
         <Row style={styles.receiverLabelRow}>
