@@ -210,7 +210,7 @@ const Home = () => {
                     onClick={() => store.openInEditor()}
                     disabled={connected}
                   >
-                    Edit Settings
+                    Edit settings in external editor
                   </Button>
                 }
               >
@@ -327,6 +327,28 @@ const Home = () => {
                   wrapperCol={{ span: 8 }}
                 >
                   <Slider onChange={onInputGainChange} />
+                </FormItem>
+              </Card>
+              <Card>
+                <FormItem
+                  style={{ marginTop: 48 }}
+                  wrapperCol={{ span: 32, offset: 8 }}
+                >
+                  <Button
+                    size="large"
+                    type={"primary"}
+                    shape="round"
+                    style={{
+                      width: "50%",
+                      fontWeight: "bold",
+                    }}
+                    onClick={() =>
+                      store.set({ settings: form.getFieldsValue() })
+                    }
+                    disabled={connected}
+                  >
+                    Save Settings
+                  </Button>
                 </FormItem>
               </Card>
             </Form>
