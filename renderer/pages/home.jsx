@@ -33,6 +33,7 @@ const Home = () => {
   const [connected, setConnected] = useState(false);
   const [receiverMap, setReceiverMap] = useState(new Map());
 
+  // Handle connected status of this call
   oscService.handleMessage("/status", (msgObj) => {
     const allValues = msgObj.msg.map((m) => m.value + "");
     if (allValues.includes("off")) {
@@ -46,6 +47,7 @@ const Home = () => {
     setReceiverMap(new Map(receiverMap.set(k, v)));
   }, []);
 
+  // Update the local state map with the incoming osc message values about receivers
   const updateReceivers = React.useCallback((allValues) => {
     const receiverNumber = allValues[0];
     const receiverName = allValues[1];
@@ -70,6 +72,7 @@ const Home = () => {
     updateReceivers(msgObj.msg.map((m) => m.value));
   };
 
+  // Handle receiver related values
   oscService.handleMessage("/receiver", _.debounce(messageCallback, 200));
 
   useEffect(() => {
@@ -80,11 +83,15 @@ const Home = () => {
     };
   }, []);
 
+  /**
+   *  Update the receiver's connected status based on the last received packet from Netty
+   * */
   const updateConnectedReceivers = React.useCallback(() => {
     const keys = receiverMap.keys();
     [...keys].map((key) => {
       const receiver = receiverMap.get(key);
       const sinceLastReceived = (Date.now() - receiver.timestamp) / 1000; // convert to seconds
+      // if we haven't received anything for past 3 seconds, we can say that this receiver is disconnected
       if (sinceLastReceived >= 3 && receiver.connected) {
         updateMap(key, {
           ...receiverMap.get(key),
@@ -94,6 +101,7 @@ const Home = () => {
     });
   }, []);
 
+  // Check and update connected status every 2 seconds for all receivers
   useInterval(() => updateConnectedReceivers(), 2000);
 
   const getExtra = (key) => {
@@ -144,6 +152,7 @@ const Home = () => {
 
   const [form] = Form.useForm();
 
+  // On load/refresh of the page, send all the settings to Netty
   const refreshSettings = React.useCallback(() => {
     const settings = store.get("settings");
     if (settings) {
@@ -155,6 +164,7 @@ const Home = () => {
       oscService.sendMessage("/serverPort", parseInt(settings["serverPort"]));
       form.setFieldsValue(settings);
     } else {
+      // default values - nothing configured yet
       store.set({
         settings: {
           inputChannels: "2",
@@ -172,6 +182,21 @@ const Home = () => {
     //on load, send all values from settings
     refreshSettings();
   }, []);
+
+  const renderReceivers = () => (
+    <>
+      {[...receiverMap.keys()].map((key) => (
+        <Panel
+          header={`Receiver: ${key}`}
+          bordered
+          key={key}
+          extra={getExtra(key)}
+        >
+          <Receiver key={key} receiver={receiverMap.get(key)} />
+        </Panel>
+      ))}
+    </>
+  );
 
   return (
     <React.Fragment>
@@ -324,18 +349,7 @@ const Home = () => {
         </Col>
         <Col span={12}>
           <Content style={{ padding: 10 }}>
-            <Collapse>
-              {[...receiverMap.keys()].map((key) => (
-                <Panel
-                  header={`Receiver: ${key}`}
-                  bordered
-                  key={key}
-                  extra={getExtra(key)}
-                >
-                  <Receiver key={key} receiver={receiverMap.get(key)} />
-                </Panel>
-              ))}
-            </Collapse>
+            <Collapse>{renderReceivers()}</Collapse>
           </Content>
         </Col>
       </Row>
