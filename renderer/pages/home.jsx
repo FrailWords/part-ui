@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import Head from "next/head";
 import {
   Button,
@@ -19,19 +19,22 @@ import oscService from "../service/oscService";
 import _ from "lodash";
 import Receiver from "../components/receiver";
 import Store from "electron-store";
-import {useInterval} from "../hooks/useInterval";
+import { useInterval } from "../hooks/useInterval";
+import useArray from "react-use-array";
 
-const {Content} = Layout;
-const {Item: FormItem} = Form;
-const {Option} = Select;
-const {Panel} = Collapse;
-const {Text} = Typography;
+const { Content } = Layout;
+const { Item: FormItem } = Form;
+const { Option } = Select;
+const { Panel } = Collapse;
+const { Text } = Typography;
 
 const store = new Store();
 
 const Home = () => {
   const [connected, setConnected] = useState(false);
-  const [receiverMap, setReceiverMap] = useState(new Map());
+
+  // 12 receivers
+  const [receivers, { setAt, updateAt }] = useArray(Array(12).fill(undefined));
 
   // Handle connected status of this call
   oscService.handleMessage("/status", (msgObj) => {
@@ -43,37 +46,38 @@ const Home = () => {
     }
   });
 
-  const updateMap = React.useCallback((k, v) => {
-    setReceiverMap(new Map(receiverMap.set(k, v)));
-  }, []);
-
   // Update the local state map with the incoming osc message values about receivers
-  const updateReceivers = React.useCallback((allValues) => {
-    const receiverNumber = allValues[0];
-    const receiverName = allValues[1];
-    const key = `${receiverName}-${receiverNumber}`
-    if (receiverMap.has(key)) {
-      updateMap(key, {
-        ...receiverMap.get(key),
-        timestamp: Date.now()
-      })
-    } else {
-      updateMap(key, {
+  const updateReceivers = (allValues) => {
+    const receiverIndex = allValues[0];
+    const receiverNumber = allValues[1];
+    const receiverName = allValues[2];
+    const idx = receiverIndex - 1;
+    if (receivers[idx] === undefined) {
+      setAt(idx, {
         name: receiverName,
         number: receiverNumber,
         timestamp: Date.now(),
         connected: true,
-      })
+      });
+    } else {
+      updateAt(idx, (item) => ({
+        ...item,
+        timestamp: Date.now(),
+      }));
     }
-  }, [])
-
+  };
 
   const messageCallback = (msgObj) => {
-    updateReceivers(msgObj.msg.map((m) => m.value))
+    updateReceivers(msgObj.msg.map((m) => m.value));
   };
 
   // Handle receiver related values
-  oscService.handleMessage("/receiver", _.debounce(messageCallback, 200));
+  _.range(0, 12).forEach((idx) => {
+    oscService.handleMessage(
+      `/receiver${idx + 1}`,
+      _.debounce(messageCallback, 500)
+    );
+  });
 
   useEffect(() => {
     oscService.open();
@@ -87,26 +91,25 @@ const Home = () => {
    *  Update the receiver's connected status based on the last received packet from Netty
    * */
   useInterval(() => {
-    const keys = receiverMap.keys();
-    [...keys].map((key) => {
-      const receiver = receiverMap.get(key);
-      const sinceLastReceived = (Date.now() - receiver.timestamp) / 1000; // convert to seconds
-      // if we haven't received anything for past 3 seconds, we can say that this receiver is disconnected
-      if (sinceLastReceived >= 3 && receiver.connected) {
-        updateMap(key, {
-          ...receiverMap.get(key),
-          connected: false,
-        })
-      }
-    })
+    receivers
+      .filter((receiver) => receiver && receiver.name)
+      .forEach((receiver, idx) => {
+        const sinceLastReceived = (Date.now() - receiver.timestamp) / 1000; // convert to seconds
+        // if we haven't received anything for past 5 seconds, we can say that this receiver is disconnected
+        if (sinceLastReceived >= 5 && receiver.connected) {
+          updateAt(idx, (item) => ({
+            ...item,
+            connected: false,
+          }));
+        }
+      });
   }, 2000);
 
-  const getExtra = (key) => {
-    const receiver = receiverMap.get(key);
-    return receiver.connected ? (
-        <Text type="success">Connected</Text>
+  const getExtra = (connected) => {
+    return connected ? (
+      <Text type="success">Connected</Text>
     ) : (
-        <Text type="danger">Not Connected</Text>
+      <Text type="danger">Not Connected</Text>
     );
   };
 
@@ -124,7 +127,7 @@ const Home = () => {
 
   const onInputGainChange = (gain) => {
     oscService.sendMessage("/inputGain", gain);
-    form.setFieldsValue({mute: false});
+    form.setFieldsValue({ mute: false });
   };
 
   const onServerChange = (server) => {
@@ -159,7 +162,7 @@ const Home = () => {
       oscService.sendMessage("/channelName", settings["channelName"]);
       oscService.sendMessage("/callName", settings["callName"]);
       oscService.sendMessage("/serverPort", parseInt(settings["serverPort"]));
-      form.setFieldsValue(settings)
+      form.setFieldsValue(settings);
     } else {
       // default values - nothing configured yet
       store.set({
@@ -169,9 +172,9 @@ const Home = () => {
           serverAddress: "server-address",
           channelName: "channel-name",
           callName: "call-name",
-          serverPort: 38400
-        }
-      })
+          serverPort: 38400,
+        },
+      });
     }
   };
 
@@ -180,148 +183,133 @@ const Home = () => {
     refreshSettings();
   }, []);
 
-  const renderReceivers = () => (
-    <>
-      {[...receiverMap.keys()].map((key) => (
-        <Panel
-          header={`Receiver: ${key}`}
-          bordered
-          key={key}
-          extra={getExtra(key)}
-        >
-          <Receiver key={key} receiver={receiverMap.get(key)} />
-        </Panel>
-      ))}
-    </>
-  );
-
   return (
-      <React.Fragment>
-        <Head>
-          <title>Musician Interface</title>
-        </Head>
+    <React.Fragment>
+      <Head>
+        <title>Musician Interface</title>
+      </Head>
 
-        <Row>
-          <Col span={12}>
-            <Content style={{padding: 10}}>
-              <Form
-                  form={form}
-                  layout="horizontal"
-                  onFinish={onFinish}
-                  onFinishFailed={onFinishFailed}
-                  autoComplete="off"
+      <Row>
+        <Col span={12}>
+          <Content style={{ padding: 10 }}>
+            <Form
+              form={form}
+              layout="horizontal"
+              onFinish={onFinish}
+              onFinishFailed={onFinishFailed}
+              autoComplete="off"
+            >
+              <Card
+                title={"Call Details"}
+                extra={
+                  <Button
+                    size="large"
+                    type={"default"}
+                    shape="round"
+                    style={{ fontWeight: "bold" }}
+                    onClick={() => store.openInEditor()}
+                    disabled={connected}
+                  >
+                    Edit Settings
+                  </Button>
+                }
               >
-                <Card
-                    title={"Call Details"}
-                    extra={
-                      <Button
-                          size="large"
-                          type={"default"}
-                          shape="round"
-                          style={{fontWeight: "bold"}}
-                          onClick={() => store.openInEditor()}
-                          disabled={connected}
-                      >
-                        Edit Settings
-                      </Button>
-                    }
+                <FormItem
+                  name="serverAddress"
+                  label="Server Address"
+                  labelCol={{ span: 8 }}
+                  wrapperCol={{ span: 8 }}
                 >
-                  <FormItem
-                      name="serverAddress"
-                      label="Server Address"
-                      labelCol={{span: 8}}
-                      wrapperCol={{span: 8}}
-                  >
-                    <Input
-                        size="large"
-                        disabled={connected}
-                        style={{width: 300}}
-                        name="ipAddress"
-                        onBlur={onServerChange}
-                    />
-                  </FormItem>
+                  <Input
+                    size="large"
+                    disabled={connected}
+                    style={{ width: 300 }}
+                    name="ipAddress"
+                    onBlur={onServerChange}
+                  />
+                </FormItem>
 
-                  <FormItem
-                      name="serverPort"
-                      label="Port"
-                      labelCol={{span: 8}}
-                      wrapperCol={{span: 8}}
-                  >
-                    <Input
-                        size="large"
-                        disabled={connected}
-                        style={{width: 100}}
-                        name="port"
-                        onBlur={onPortChange}
-                    />
-                  </FormItem>
+                <FormItem
+                  name="serverPort"
+                  label="Port"
+                  labelCol={{ span: 8 }}
+                  wrapperCol={{ span: 8 }}
+                >
+                  <Input
+                    size="large"
+                    disabled={connected}
+                    style={{ width: 100 }}
+                    name="port"
+                    onBlur={onPortChange}
+                  />
+                </FormItem>
 
-                  <FormItem
-                      name="channelName"
-                      label="Channel Name"
-                      labelCol={{span: 8}}
-                      wrapperCol={{span: 8}}
-                  >
-                    <Input
-                        size="large"
-                        disabled={connected}
-                        style={{width: 300}}
-                        name="channelName"
-                        onBlur={onChannelNameChange}
-                    />
-                  </FormItem>
+                <FormItem
+                  name="channelName"
+                  label="Channel Name"
+                  labelCol={{ span: 8 }}
+                  wrapperCol={{ span: 8 }}
+                >
+                  <Input
+                    size="large"
+                    disabled={connected}
+                    style={{ width: 300 }}
+                    name="channelName"
+                    onBlur={onChannelNameChange}
+                  />
+                </FormItem>
 
-                  <FormItem
-                      name="callName"
-                      label="Call Name"
-                      labelCol={{span: 8}}
-                      wrapperCol={{span: 8}}
-                  >
-                    <Input
-                        size="large"
-                        disabled={connected}
-                        style={{width: 300}}
-                        name="callName"
-                        onBlur={onCallNameChange}
-                    />
-                  </FormItem>
+                <FormItem
+                  name="callName"
+                  label="Call Name"
+                  labelCol={{ span: 8 }}
+                  wrapperCol={{ span: 8 }}
+                >
+                  <Input
+                    size="large"
+                    disabled={connected}
+                    style={{ width: 300 }}
+                    name="callName"
+                    onBlur={onCallNameChange}
+                  />
+                </FormItem>
 
-                  <FormItem
-                      style={{marginTop: 48}}
-                      wrapperCol={{span: 32, offset: 8}}
+                <FormItem
+                  style={{ marginTop: 48 }}
+                  wrapperCol={{ span: 32, offset: 8 }}
+                >
+                  <Button
+                    size="large"
+                    danger={connected}
+                    type={connected ? "cancel" : "primary"}
+                    htmlType="submit"
+                    shape="round"
+                    style={{ width: "50%", fontWeight: "bold" }}
                   >
-                    <Button
-                        size="large"
-                        danger={connected}
-                        type={connected ? "cancel" : "primary"}
-                        htmlType="submit"
-                        shape="round"
-                        style={{width: "50%", fontWeight: "bold"}}
-                    >
-                      {!connected ? "Connect" : "Disconnect"}
-                    </Button>
-                  </FormItem>
-                </Card>
-                <Divider/>
-                <Card title={"Send Audio"}>
-                  <FormItem
-                      name="inputChannels"
-                      label="Input Channels"
-                      labelCol={{span: 8}}
-                      wrapperCol={{span: 8}}
+                    {!connected ? "Connect" : "Disconnect"}
+                  </Button>
+                </FormItem>
+              </Card>
+              <Divider />
+              <Card title={"Send Audio"}>
+                <FormItem
+                  name="inputChannels"
+                  label="Input Channels"
+                  labelCol={{ span: 8 }}
+                  wrapperCol={{ span: 8 }}
+                >
+                  <Select
+                    size="small"
+                    style={{ width: 100 }}
+                    onSelect={onNChanChange}
                   >
-                    <Select
-                        size="small"
-                        style={{width: 100}}
-                        onSelect={onNChanChange}
-                    >
-                      <Option value="0">0</Option>
-                      <Option value="1">1</Option>
-                      <Option value="2">2</Option>
-                      <Option value="3">3</Option>
-                      <Option value="4">4</Option>
-                    </Select>
-                  </FormItem>
+                    <Option value="0">0</Option>
+                    <Option value="1">1</Option>
+                    <Option value="2">2</Option>
+                    <Option value="3">3</Option>
+                    <Option value="4">4</Option>
+                  </Select>
+                </FormItem>
 
                 <FormItem
                   name="mute"
@@ -346,7 +334,20 @@ const Home = () => {
         </Col>
         <Col span={12}>
           <Content style={{ padding: 10 }}>
-            <Collapse>{renderReceivers()}</Collapse>
+            <Collapse>
+              {receivers
+                .filter((receiver) => receiver && receiver.name)
+                .map((receiver, idx) => (
+                  <Panel
+                    header={`Receiver ${idx + 1} - ${receiver.name}`}
+                    bordered
+                    key={idx}
+                    extra={getExtra(receiver.connected)}
+                  >
+                    <Receiver key={idx} receiver={receiver} />
+                  </Panel>
+                ))}
+            </Collapse>
           </Content>
         </Col>
       </Row>

@@ -15,7 +15,8 @@
     "electron-serve": "^1.1.0",
     "electron-store": "^8.0.1",
     "lodash": "^4.17.21",
-    "osc-js": "^2.1.2"
+    "osc-js": "^2.1.2",
+    "react-use-array": "^1.0.5"
   },
   "devDependencies": {
     "@babel/core": "^7.15.5",
